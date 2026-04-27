@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useContent } from '../context/ContentContext';
 import { Check, Settings, RotateCcw, Home, Plus, Trash2, GripVertical, Save } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -8,11 +8,25 @@ export default function Admin() {
   const [editedContent, setEditedContent] = useState(content);
   const [activeTab, setActiveTab] = useState<'services' | 'blog' | 'testimonials' | 'faq'>('services');
   const [saved, setSaved] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [passwordAttempt, setPasswordAttempt] = useState('');
+  const [loginError, setLoginError] = useState(false);
 
   // Sync state when content context updates (e.g. after reset)
   useEffect(() => {
     setEditedContent(content);
   }, [content]);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Using a simple hardcoded password for now
+    if (passwordAttempt === 'admin123') {
+      setIsAuthenticated(true);
+      setLoginError(false);
+    } else {
+      setLoginError(true);
+    }
+  };
 
   const handleSave = () => {
     updateContent(editedContent);
@@ -42,6 +56,53 @@ export default function Admin() {
     newList.splice(index, 1);
     setEditedContent({ ...editedContent, [category]: newList });
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <form onSubmit={handleLogin} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm max-w-sm w-full">
+          <div className="flex justify-center mb-6">
+            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+              <Settings size={24} />
+            </div>
+          </div>
+          <h1 className="text-xl font-bold text-center text-slate-800 mb-6">Acceso Administrador</h1>
+          
+          {loginError && (
+            <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 text-center font-medium">
+              Contraseña incorrecta
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Contraseña</label>
+              <input 
+                type="password" 
+                value={passwordAttempt}
+                onChange={(e) => setPasswordAttempt(e.target.value)}
+                className="w-full p-3 border border-slate-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            <button 
+              type="submit"
+              className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors active:scale-95"
+            >
+              Entrar
+            </button>
+          </div>
+          
+          <div className="mt-6 text-center">
+            <Link to="/" className="text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors inline-flex items-center justify-center gap-1">
+              <Home size={14} /> Volver a la web
+            </Link>
+          </div>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
